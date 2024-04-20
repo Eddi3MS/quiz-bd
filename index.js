@@ -23,42 +23,43 @@ const getAudio = async (videoURL, res) => {
   try {
     const info = await ytdl.getInfo(videoURL)
 
-    if (!info)
+    if (!info) {
+      console.log('no info')
+
       throw {
         message: 'An error occurred',
       }
+    }
 
-    if (!clientGlob)
+    if (!clientGlob) {
+      console.log('no clientGlob')
       throw {
         message: 'Worker not initialized',
       }
-
+    }
     clientGlob.emit('videoDetails', [
       info.videoDetails.title,
       info.videoDetails.author.name,
     ])
 
-    ytdl(videoURL, {
+    const res = await ytdl(videoURL, {
       quality: 'highestaudio',
       filter: 'audioonly',
     })
       .on('progress', (chunkSize, downloadedChunk, totalChunk) => {
-        // console.log(downloadedChunk);
-        clientGlob.emit('progressEventSocket', [
-          (downloadedChunk * 100) / totalChunk,
-        ])
+        const progressPercentage = (downloadedChunk * 100) / totalChunk
+        clientGlob.emit('progressEventSocket', [progressPercentage])
         clientGlob.emit('downloadCompletedServer', [downloadedChunk])
-        if (downloadedChunk == totalChunk) {
-          console.log('Downloaded')
-        }
       })
       .pipe(res)
 
+    console.log('🚀 ~ getAudio ~ res:', res)
     return {
       ...info,
       status: 200,
     }
   } catch (error) {
+    console.log('🚀 ~ getAudio ~ error:', error)
     return {
       error: error.message,
       msg: 'an error occured',
@@ -75,12 +76,9 @@ app.use(cors())
 app.post('/', async (req, res) => {
   const audioData = await getAudio(req.body.url, res)
 
-  console.log(audioData)
-
   if (audioData?.status === 400) {
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify(audioData))
-  } else {
   }
 })
 
