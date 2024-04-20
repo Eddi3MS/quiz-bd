@@ -42,7 +42,7 @@ const getAudio = async (videoURL, res) => {
       info.videoDetails.author.name,
     ])
 
-    const res = await ytdl(videoURL, {
+    await ytdl(videoURL, {
       quality: 'highestaudio',
       filter: 'audioonly',
     })
@@ -53,7 +53,6 @@ const getAudio = async (videoURL, res) => {
       })
       .pipe(res)
 
-    console.log('🚀 ~ getAudio ~ res:', res)
     return {
       ...info,
       status: 200,
